@@ -1,0 +1,7 @@
+data/Water_Database_simulated.xlsx
+outputs/*
+!outputs/.gitkeep
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
