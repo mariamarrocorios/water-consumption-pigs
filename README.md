@@ -36,31 +36,87 @@ end-to-end.
 
 ## How to run
 
-1. Clone this repository and open it as your R working directory.
-2. Install the required packages (see below).
-3. Generate the example dataset:
-   ```r
-   source("data/simulate_data.R")
-   ```
-4. Run the modelling scripts you want (each is self-contained and can be run
-   independently, in any order):
-   ```r
-   source("scripts/01_linear_regression.R")
-   source("scripts/02_random_forest.R")
-   source("scripts/03_xgboost.R")
-   source("scripts/04_neural_network.R")
-   ```
-5. Combine the results into a summary table and figures:
-   ```r
-   source("scripts/06_compile_results.R")
-   ```
-   This produces `outputs/summary_table.csv` (RMSE/MAE per model, analogous
-   to Table 2 in the paper), `outputs/Figure_RMSE_comparison.png`, and
-   `outputs/Figure_observed_vs_predicted.png`. Any model whose output files
-   are not found is skipped automatically, so you do not need to run all
-   five scripts to use this step.
+### 1. Set your working directory
 
-To run everything from the command line instead of an R session:
+Before running anything, R needs to know where the `repo` folder lives on
+your computer, so that it can find `data/`, `scripts/`, etc.
+
+**Option A — using code (in the RStudio console):**
+
+```r
+setwd("C:/Users/your_username/Downloads/repo")   # Windows example
+setwd("/Users/your_username/Downloads/repo")     # Mac example
+```
+
+Use your own path, and use forward slashes `/` even on Windows. Check it
+worked with:
+
+```r
+getwd()
+```
+
+**Option B — using the RStudio menu (no code needed):**
+`Session` → `Set Working Directory` → `Choose Directory...` → select the
+`repo` folder → `Open`.
+
+### 2. Install the required packages (first time only)
+
+```r
+install.packages(c(
+  "readxl", "writexl", "dplyr", "tidyr", "ggplot2",
+  "randomForest", "xgboost", "nnet", "zoo"
+))
+```
+
+This can take a couple of minutes the first time. If a package is already
+installed, R will simply skip or reinstall it — no harm either way.
+
+### 3. Generate the example dataset
+
+```r
+source("data/simulate_data.R")
+```
+
+You should see a message like `Simulated dataset written to:
+data/Water_Database_simulated.xlsx`. If you see this, it worked.
+
+### 4. Run the modelling scripts you want
+
+Each script is self-contained and can be run independently, in any order
+(you don't need to run all five):
+
+```r
+source("scripts/01_linear_regression.R")
+source("scripts/02_random_forest.R")
+source("scripts/03_xgboost.R")
+source("scripts/04_neural_network.R")
+```
+
+You will see progress messages printed as each script runs (e.g.
+`[Random Forest] building: Farm_1.0.1 | batch: 1`) — this is normal and
+just shows it is working through each batch.
+
+### 5. Combine the results into a summary table and figures
+
+```r
+source("scripts/06_compile_results.R")
+```
+
+This produces `outputs/summary_table.csv` (RMSE/MAE per model, analogous
+to Table 2 in the paper), `outputs/Figure_RMSE_comparison.png`, and
+`outputs/Figure_observed_vs_predicted.png`. Any model whose output files
+are not found is skipped automatically, so you do not need to run all
+five scripts to use this step.
+
+### 6. Check the results
+
+Open the `outputs` folder in your normal file explorer (Finder / File
+Explorer) — no R needed for this step. Open the `.csv` in Excel and the
+`.png` files like any image.
+
+### Running from the command line instead
+
+If you prefer not to use an interactive R session:
 
 ```bash
 Rscript data/simulate_data.R
@@ -70,6 +126,14 @@ Rscript scripts/03_xgboost.R
 Rscript scripts/04_neural_network.R
 Rscript scripts/06_compile_results.R
 ```
+
+### Troubleshooting
+
+| Error message | Likely cause |
+|---|---|
+| `cannot open file '...': No such file or directory` | Your working directory (Step 1) isn't pointing at the `repo` folder. Check with `getwd()`. |
+| `there is no package called '...'` | That package wasn't installed. Re-run Step 2, adding the missing package name. |
+| `DLM dependencies not found...` (when running `05_dlm.R`) | Expected — see "About the DLM script" below. This is not an error; the script skips DLM automatically and the rest of the pipeline is unaffected. |
 
 ## Using your own data
 

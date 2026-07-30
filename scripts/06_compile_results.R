@@ -22,12 +22,24 @@ model_files <- list(
 )
 
 model_labels <- c(
-  "LR_baseline" = "Linear Regression (baseline)",
-  "LR_extended" = "Linear Regression (extended)",
+  "LR_baseline" = "bLR",
+  "LR_extended" = "lLR",
   "RF"  = "Random Forest",
   "XGB" = "XGBoost",
   "NN"  = "Neural Network",
   "DLM" = "DLM"
+)
+
+# Same colour-per-model mapping used in the paper's figures (lLR uses the
+# same hue as "Linear Regression" there; bLR is a lighter tint of that
+# same hue, so both read as "the same family" of model but stay distinct).
+model_colors <- c(
+  "bLR"            = "#CCCE73",
+  "lLR"            = "#A3A500",
+  "Random Forest"  = "#E76BF3",
+  "XGBoost"        = "#00B0F6",
+  "Neural Network" = "#00BF7D",
+  "DLM"            = "#F8766D"
 )
 
 # ---------------------------------------------------------
@@ -38,24 +50,24 @@ results_list <- list()
 hourly_list  <- list()
 
 for(m in names(model_files)){
-
+  
   f <- model_files[[m]]
   summary_path <- file.path(f[1], f[2])
   hourly_path  <- file.path(f[1], f[3])
-
+  
   if(file.exists(summary_path) && file.exists(hourly_path)){
-
+    
     r <- readRDS(summary_path)
     h <- readRDS(hourly_path)
-
+    
     # LR script stores its own Model column (baseline/extended);
     # the other scripts do not, so it is added here.
     if(!"Model" %in% colnames(r)) r$Model <- m
     if(!"Model" %in% colnames(h)) h$Model <- m
-
+    
     results_list[[m]] <- r
     hourly_list[[m]]  <- h
-
+    
   } else {
     message("Skipping ", m, ": results not found in '", output_dir, "/' ",
             "(run the corresponding script first).")
@@ -102,9 +114,11 @@ write.csv(summary_table, file.path(output_dir, "summary_table.csv"), row.names =
 # FIGURE 1 - RMSE COMPARISON ACROSS MODELS
 # ---------------------------------------------------------
 
-p_rmse <- ggplot(all_results, aes(x = Model_label, y = RMSE)) +
+p_rmse <- ggplot(all_results, aes(x = Model_label, y = RMSE, fill = Model_label)) +
   geom_boxplot(outlier.shape = NA) +
   geom_jitter(width = 0.15, alpha = 0.6) +
+  scale_fill_manual(values = model_colors) +
+  guides(fill = "none") +   # colour reinforces the x-axis category
   theme_minimal() +
   labs(title = "RMSE across modelling approaches (example dataset)",
        x = "", y = "RMSE (L/hour)") +
@@ -128,6 +142,7 @@ df_example <- hourly_results_all %>%
 p_example <- ggplot(df_example, aes(x = Total_hour)) +
   geom_line(aes(y = Real), color = "navy", linewidth = 0.9) +
   geom_line(aes(y = Pred, color = Model_label), linewidth = 0.6, alpha = 0.8) +
+  scale_color_manual(values = model_colors) +
   facet_wrap(~ Model_label, ncol = 1, scales = "free_y") +
   theme_minimal() +
   labs(
